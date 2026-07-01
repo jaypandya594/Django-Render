@@ -1,19 +1,20 @@
+import dj_database_url
 from decouple import config
 
-DJANGO_DB_NAME = config('DJANGO_DB_NAME', cast=str)
-DJANGO_DB_USER = config('DJANGO_DB_USER', cast=str)
-DJANGO_DB_PASSWORD = config('DJANGO_DB_PASSWORD', cast=str)
-DJANGO_DB_HOST = config('DJANGO_DB_HOST', cast=str)
-DJANGO_DB_PORT = config('DJANGO_DB_PORT', cast=str)
+# Reads Coolify's unified connection string directly
+DATABASE_URL = config('DATABASE_URL', default='')
 
-if all([DJANGO_DB_NAME, DJANGO_DB_USER, DJANGO_DB_PASSWORD, DJANGO_DB_HOST, DJANGO_DB_PORT]):
-  DATABASES = {
-  'default': {
-    'ENGINE': 'django.db.backends.postgresql',
-    'NAME': DJANGO_DB_NAME,
-    'USER': DJANGO_DB_USER,
-    'PASSWORD': DJANGO_DB_PASSWORD,
-    'HOST': DJANGO_DB_HOST,
-    'PORT': DJANGO_DB_PORT,
-  }
-}
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
+    }
+else:
+    # Safe local fallback so your code doesn't crash if envs are missing locally
+    from pathlib import Path
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
